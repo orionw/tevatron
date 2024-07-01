@@ -1,0 +1,5 @@
+numpy==1.26.4
+datasets==2.18.0
+pip install deepspeed accelerate
+pip install transformers datasets peft
+pip install faiss-cpu
