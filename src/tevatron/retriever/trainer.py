@@ -17,6 +17,7 @@ class TevatronTrainer(Trainer):
         super(TevatronTrainer, self).__init__(*args, **kwargs)
         self.is_ddp = dist.is_initialized()
         self._dist_loss_scale_factor = dist.get_world_size() if self.is_ddp else 1
+        self.dont_shuffle = "dont_shuffle" in kwargs and kwargs["dont_shuffle"]
 
     def _save(self, output_dir: Optional[str] = None, state_dict=None):
         # If we are executing this function, we are the process zero, so we don't check for that.
@@ -51,4 +52,13 @@ class TevatronTrainer(Trainer):
 
     def training_step(self, *args):
         return super(TevatronTrainer, self).training_step(*args) / self._dist_loss_scale_factor
+
+    def _get_train_sampler(self):
+        # print(f"Using dont_shuffle={self.dont_shuffle}")
+        # if self.dont_shuffle:
+        print(f"Using SequentialSampler for training")
+        from torch.utils.data.sampler import SequentialSampler
+        return SequentialSampler(self.train_dataset)
+        # else:
+        #     return super(TevatronTrainer, self)._get_train_sampler()
 

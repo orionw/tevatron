@@ -71,6 +71,9 @@ class ModelArguments:
         },
     )
 
+    # don't shuffle
+    dont_shuffle: bool = field(default=False, metadata={"help": "don't shuffle the training data"})
+
 
 @dataclass
 class DataArguments:
