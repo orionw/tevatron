@@ -21,6 +21,7 @@ def upload_folder(args):
             repo_id=args.repo,
             repo_type="dataset",
             multi_commits=True,
+            ignore_patterns=["pre-faiss/*", "faiss/full/*"],
             multi_commits_verbose=True,
         )
     except Exception as e:
@@ -33,6 +34,7 @@ def upload_folder(args):
             repo_id=args.repo,
             repo_type="dataset",
             multi_commits=True,
+            ignore_patterns=["pre-faiss/*", "faiss/full/*"],
             multi_commits_verbose=True,
         )
     

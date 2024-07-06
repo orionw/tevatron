@@ -1,7 +1,9 @@
 import random
+import os
 from dataclasses import dataclass
 from typing import List, Tuple
 
+import pandas as pd
 import datasets
 from datasets import load_dataset
 from torch.utils.data import Dataset
@@ -78,7 +80,13 @@ class HFQueryDataset:
         data_files = data_args.encode_in_path
         if data_files:
             data_files = {data_args.dataset_split: data_files}
-        self.dataset = load_dataset(data_args.dataset_name,data_args.dataset_language,data_files=data_files, cache_dir=cache_dir, use_auth_token=True)[data_args.dataset_split]
+        if os.path.exists(data_args.dataset_name):
+            # load the tsv file directly
+            df = pd.read_csv(data_args.dataset_name, sep='\t', header=None, index_col=None)
+            df.columns = ['query_id', 'query']
+            self.dataset = datasets.Dataset.from_pandas(df)
+        else:
+            self.dataset = load_dataset(data_args.dataset_name,data_args.dataset_language,data_files=data_files, cache_dir=cache_dir, use_auth_token=True)[data_args.dataset_split]
         self.preprocessor = QueryPreProcessor
         self.tokenizer = tokenizer
         self.q_max_len = data_args.q_max_len

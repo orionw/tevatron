@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # example:
-#   bash scripts/do_eval.sh /home/ubuntu/tevatron/repllama-v1-7b-lora-passage
+#   bash scripts/do_eval.sh /home/ubuntu/tevatron/retriever-llama2-instruct-cl-slow
 
 model_path=$1
 pretty_name=$(basename $model_path)
@@ -21,6 +21,7 @@ fi
 if [ ! -f "${pretty_name}_embeddings/dl19_queries_emb.pkl" ]; then
     bash scripts/encode_queries.sh $model_path
 fi
+
 
 # if the eval file doesn't exist, run the search
 if [ ! -f "${pretty_name}_embeddings/eval.${dataset}.txt" ]; then
