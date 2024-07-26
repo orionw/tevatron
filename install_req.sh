@@ -1,4 +1,5 @@
 #!/bin/bash
+# conda config --set ssl_verify false
 # conda create -n tevatron python=3.10 -y
 # conda activate tevatron
 

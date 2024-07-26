@@ -55,10 +55,10 @@ class TevatronTrainer(Trainer):
 
     def _get_train_sampler(self):
         # print(f"Using dont_shuffle={self.dont_shuffle}")
-        # if self.dont_shuffle:
-        print(f"Using SequentialSampler for training")
-        from torch.utils.data.sampler import SequentialSampler
-        return SequentialSampler(self.train_dataset)
+        # # if self.dont_shuffle:
+        # print(f"Using SequentialSampler for training")
+        # from torch.utils.data.sampler import SequentialSampler
+        # return SequentialSampler(self.train_dataset)
         # else:
-        #     return super(TevatronTrainer, self)._get_train_sampler()
+        return super(TevatronTrainer, self)._get_train_sampler()
 

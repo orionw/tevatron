@@ -6,5 +6,6 @@ if [ ! -f ./Anaconda3-5.1.0-Linux-x86_64.sh ]; then
     wget https://repo.anaconda.com/archive/Anaconda3-5.1.0-Linux-x86_64.sh
 fi
 
-bash ./Anaconda3-5.1.0-Linux-x86_64.sh -b 
-echo ". /home/ubuntu/anaconda3/etc/profile.d/conda.sh" >> ~/.bashrc
+# install manually, ignoring below
+# bash ./Anaconda3-5.1.0-Linux-x86_64.sh -b 
+# echo ". /home/ubuntu/anaconda3/etc/profile.d/conda.sh" >> ~/.bashrc
