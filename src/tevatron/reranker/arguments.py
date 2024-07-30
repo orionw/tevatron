@@ -27,7 +27,7 @@ class ModelArguments:
     )
 
     lora_r: int = field(
-        default=8,
+        default=32,
         metadata={"help": "lora r"}
     )
 

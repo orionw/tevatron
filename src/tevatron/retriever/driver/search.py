@@ -60,6 +60,7 @@ def main():
 
     args = parser.parse_args()
 
+    print(f"looking at `{args.passage_reps}`")
     index_files = glob.glob(args.passage_reps)
     logger.info(f'Pattern match found {len(index_files)} files; loading them into index.')
 

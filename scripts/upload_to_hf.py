@@ -48,4 +48,4 @@ if __name__ == "__main__":
 
 
     # example usage:
-    #   python push_folder_to_hub.py -f /home/oweller/downloaded_data/fineweb-edu-350B -r orionweller/fineweb-edu-350B
+    #   python scripts/upload_to_hf.py -f retriever-llama2-4gpu/final -r orionweller/repllama-reproduced-v2

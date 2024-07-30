@@ -1,7 +1,7 @@
 #!/bin/bash
-deepspeed --include localhost:0,1,2,3,4,5,6,7 --master_port 60000 --module tevatron.retriever.driver.train \
+deepspeed --include localhost:0,1,2,3 --master_port 60000 --module tevatron.retriever.driver.train \
   --deepspeed deepspeed/ds_zero3_config.json \
-  --output_dir retriever-llama2 \
+  --output_dir retriever-llama2-4gpu \
   --model_name_or_path meta-llama/Llama-2-7b-hf \
   --lora \
   --lora_r 32 \
@@ -25,6 +25,8 @@ deepspeed --include localhost:0,1,2,3,4,5,6,7 --master_port 60000 --module tevat
   --logging_steps 10 \
   --overwrite_output_dir \
   --warmup_steps 100 \
-  --gradient_accumulation_steps 4 
+  --gradient_accumulation_steps 4
+
+
 
   # > repro.log 2>&1 | tee repro.log
