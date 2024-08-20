@@ -2,15 +2,16 @@
 
 # sleep 14400 && bash scripts/search.sh retriever-llama2
 save_path=$1
-for dataset in dl19 dl20 dev; do # dev 
+for dataset in scifact; do # dev 
 
-    python -m tevatron.retriever.driver.search \
+    python -m tevatron.retriever.driver.search_gpu \
     --query_reps $save_path/${dataset}_queries_emb.pkl \
     --passage_reps "$save_path/"'corpus_emb.*.pkl' \
     --depth 1000 \
-    --batch_size 64 \
+    --batch_size 12 \
     --save_text \
-    --save_ranking_to $save_path/rank.${dataset}.txt
+    --save_ranking_to $save_path/rank.${dataset}.txt \
+    --use_gpu
 
     python -m tevatron.utils.format.convert_result_to_trec --input $save_path/rank.${dataset}.txt \
                                                         --output $save_path/rank.${dataset}.trec \

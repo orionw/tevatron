@@ -1,9 +1,10 @@
 #!/bin/bash
 encoded_save_path=$1
 model=$2
-for dataset in dl19 dl20 dev; do
+mkdir -p $encoded_save_path
+for dataset in dl19 dl20 msmarcodev; do
 echo $dataset
-CUDA_VISIBLE_DEVICES=7 python -m tevatron.retriever.driver.encode \
+CUDA_VISIBLE_DEVICES=6 python -m tevatron.retriever.driver.encode \
   --output_dir=temp \
   --model_name_or_path meta-llama/Llama-2-7b-hf \
   --lora_name_or_path $model \
@@ -16,10 +17,11 @@ CUDA_VISIBLE_DEVICES=7 python -m tevatron.retriever.driver.encode \
   --normalize \
   --encode_is_query \
   --per_device_eval_batch_size 128 \
-  --query_max_len 32 \
+  --query_max_len 304 \
   --passage_max_len 156 \
-  --dataset_name Tevatron/msmarco-passage \
-  --dataset_split $dataset \
-  --encode_output_path $encoded_save_path/${dataset}_queries_emb.pkl 
+  --dataset_name orionweller/msmarco-aug-question-mark \
+  --dataset_config $dataset \
+  --dataset_split train \
+  --encode_output_path $encoded_save_path/${dataset}_queries_q_emb.pkl 
 done
   

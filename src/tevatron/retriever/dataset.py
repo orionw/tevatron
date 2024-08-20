@@ -9,10 +9,22 @@ from tevatron.retriever.arguments import DataArguments
 
 import logging
 logger = logging.getLogger(__name__)
+print_once = False
 
 
-def format_query(query: str, prefix: str = '') -> str:
-    return f'{prefix} {query.strip()}'.strip()
+def format_query(query: str, prefix: str = '', prompt: str = '') -> str:
+    global print_once
+    if prompt.strip() != '':
+        ret_str = f'{prefix} {query.strip()} {prompt.strip()}'.strip()
+    else:
+        ret_str = f'{prefix} {query.strip()}'.strip()
+
+    if not print_once:
+        logger.info(f'Prompt: {prompt}')
+        logger.info(f'Query: {ret_str}')
+        print_once = True
+
+    return ret_str
 
 def format_passage(text: str, title: str = '', prefix: str = '') -> str:
     return f'{prefix} {title.strip()} {text.strip()}'.strip()
@@ -27,6 +39,7 @@ class TrainDataset(Dataset):
             data_files=self.data_args.dataset_path,
             split=self.data_args.dataset_split,
             cache_dir=self.data_args.dataset_cache_dir,
+            trust_remote_code=True
         )
         if self.data_args.dataset_number_of_shards > 1:
             self.encode_data = self.encode_data.shard(
@@ -48,7 +61,7 @@ class TrainDataset(Dataset):
         group_positives = group['positive_passages']
         group_negatives = group['negative_passages']
 
-        formated_query = format_query(query, self.data_args.query_prefix)
+        formated_query = format_query(query, self.data_args.query_prefix, self.data_args.prompt)
         formated_passages = []
 
         if self.data_args.positive_passage_no_shuffle:
@@ -65,7 +78,24 @@ class TrainDataset(Dataset):
             negs = []
         elif self.data_args.negative_passage_no_shuffle:
             negs = group_negatives[:negative_size]
+        elif self.data_args.negatives_first_n and self.data_args.negatives_first_n > 0:
+            first_n = min(self.data_args.negatives_first_n, len(group["new_negatives"]), negative_size)
+            first_negs = group["new_negatives"][:first_n]
+            remaining_to_select = negative_size - first_n
+            # logger.info(f"first_n: {first_n}, remaining_to_select: {remaining_to_select}")
+            
+            if remaining_to_select > 0:
+                _offset = epoch * remaining_to_select % len(group_negatives)
+                shuffled_negs = [x for x in group_negatives]
+                random.Random(_hashed_seed).shuffle(shuffled_negs)
+                shuffled_negs = shuffled_negs * 2
+                selected_negs = shuffled_negs[_offset: _offset + remaining_to_select]
+            else:
+                selected_negs = []
+
+            negs = first_negs + selected_negs
         else:
+            assert False
             _offset = epoch * negative_size % len(group_negatives)
             negs = [x for x in group_negatives]
             random.Random(_hashed_seed).shuffle(negs)
@@ -88,6 +118,7 @@ class EncodeDataset(Dataset):
             data_files=self.data_args.dataset_path,
             split=self.data_args.dataset_split,
             cache_dir=self.data_args.dataset_cache_dir,
+            trust_remote_code=True
         )
         if self.data_args.dataset_number_of_shards > 1:
             self.encode_data = self.encode_data.shard(
@@ -102,7 +133,7 @@ class EncodeDataset(Dataset):
         text = self.encode_data[item]
         if self.data_args.encode_is_query:
             text_id = text['query_id']
-            formated_text = format_query(text['query'], self.data_args.query_prefix)
+            formated_text = format_query(text['query'], self.data_args.query_prefix, self.data_args.prompt)
         else:
             text_id = text['docid']
             formated_text = format_passage(text['text'], text['title'], self.data_args.passage_prefix)

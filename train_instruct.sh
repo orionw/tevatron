@@ -3,7 +3,7 @@
 # bash train_instruct.sh standard orionweller/instruction-msmarco-passage-aug-50-fixed-standard "0,1,2,3" 2 > standard-percent-4gpu.log 2>&1
 
 # bash train_instruct.sh old_standard orionweller/instruction-msmarco-passage-aug-50-percent "4,5,6,7" 2 > old_standard-percent-4gpu.log
-# bash train_instruct.sh generic orionweller/instruction-msmarco-passage-aug-50-fixed-generic_instructions "0,1,2,3" 0 > generic-4gpu.log
+# bash train_instruct.sh standard_fixed orionweller/instruction-msmarco-passage-aug-50-fixed-standard "0,1,2,3" 0 > generic-4gpu-long.log
 
 echo "Args are $1 $2 $3 $4"
 deepspeed --include localhost:$3 --master_port "6000$4" --module tevatron.retriever.driver.train \
@@ -13,7 +13,7 @@ deepspeed --include localhost:$3 --master_port "6000$4" --module tevatron.retrie
   --lora \
   --lora_r 32 \
   --lora_target_modules q_proj,k_proj,v_proj,o_proj,down_proj,up_proj,gate_proj \
-  --save_steps 200 \
+  --save_steps 500 \
   --dataset_name $2 \
   --query_prefix "query: " \
   --passage_prefix "passage: " \
@@ -26,12 +26,13 @@ deepspeed --include localhost:$3 --master_port "6000$4" --module tevatron.retrie
   --gradient_checkpointing \
   --train_group_size 16 \
   --learning_rate 1e-4 \
-  --query_max_len 32 \
+  --query_max_len 304 \
   --passage_max_len 196 \
   --num_train_epochs 1 \
   --logging_steps 10 \
   --overwrite_output_dir \
   --warmup_steps 100 \
-  --gradient_accumulation_steps 4
+  --gradient_accumulation_steps 4 \
+  --negatives_first_n 3 
   # --dont_shuffle
   

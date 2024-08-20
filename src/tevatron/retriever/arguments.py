@@ -114,6 +114,10 @@ class DataArguments:
     negative_passage_no_shuffle: bool = field(
         default=False, metadata={"help": "always use the first n negative passages for training"})
 
+    negatives_first_n: int = field(
+        default=0, metadata={"help": "use the first n negative passages for training and randomly select the others"}
+    )
+
     encode_is_query: bool = field(default=False)
     encode_output_path: str = field(default=None, metadata={"help": "where to save the encode"})
 
@@ -139,6 +143,10 @@ class DataArguments:
 
     passage_prefix: str = field(
         default='', metadata={"help": "prefix or instruction for passage"}
+    )
+
+    prompt: str = field(
+        default='', metadata={"help": "prompt for query"}
     )
 
     append_eos_token: bool = field(
