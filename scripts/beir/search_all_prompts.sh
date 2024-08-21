@@ -40,6 +40,8 @@ search_and_evaluate() {
     --save_text \
     --save_ranking_to "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.txt"
 
+    echo "Ranking is saved at ${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.txt"
+
     python -m tevatron.utils.format.convert_result_to_trec \
     --input "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.txt" \
     --output "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.trec" \

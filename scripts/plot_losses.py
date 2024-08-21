@@ -42,7 +42,7 @@ def plot_losses(log_file):
 
 
 if __name__ == "__main__":
-    for log_file in glob.glob("*.log"):
+    for log_file in glob.glob("hard-positives-joint.log"):
         try:
             plot_losses(log_file)
         except Exception as e:

@@ -9,23 +9,21 @@ mkdir -p $nickname
 
 datasets=(
     'arguana'
-    # 'climate-fever'
-    # 'dbpedia-entity'
-    # 'fever'
     'fiqa'
-    # 'hotpotqa'
     'nfcorpus'
-    'quora'
     'scidocs'
     'scifact'
     'trec-covid'
     'webis-touche2020'
+    'quora'
     'nq'
+    'hotpotqa'
+    'climate-fever'
+    'dbpedia-entity'
+    'fever'
+    # 'msmarco'
 )
 
-datasets=(
-    'scifact'
-)
 
 # Read in each line of the generic_prompts.csv file where each line is a prompt
 # Run it on each dataset, hashing the prompt and passing that as the fourth argument
@@ -34,6 +32,10 @@ do
     prompt_hash=$(echo -n "$prompt" | md5sum | awk '{print $1}')
     for dataset in "${datasets[@]}"; do
         mkdir -p "$nickname/$dataset"
+        if [ -f "$nickname/$dataset/${dataset}_${prompt_hash}.trec" ]; then
+            echo "Skipping $dataset because of existing file $nickname/$dataset/$dataaset_$prompt_hash.trec"
+            continue
+        fi
         echo "Running prompt on dataset: $dataset"
         echo "Prompt: '$prompt'"
         python scripts/run_bm25s.py --dataset_name "$dataset" --prompt "$prompt" --top_k 1000 --output_dir "$nickname/$dataset" --prompt_hash "$prompt_hash"
@@ -43,8 +45,12 @@ done < generic_prompts.csv
 
 # also run one without a prompt for each dataset
 for dataset in "${datasets[@]}"; do
+    if [ -f "$nickname/$dataset/$dataset.trec" ]; then
+        echo "Skipping $dataset because of existing file $nickname/$dataset/$dataset.trec"
+        continue
+    fi
     echo "Running without prompt on dataset: $dataset"
-    python scripts/run_bm25s.py --dataset_name $dataset --top_k 1000 --output_dir "$nickname/$dataset
+    python scripts/run_bm25s.py --dataset_name $dataset --top_k 1000 --output_dir "$nickname/$dataset"
 done
 
 

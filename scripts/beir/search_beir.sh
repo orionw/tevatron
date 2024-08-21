@@ -6,7 +6,7 @@ dataset_name=$2
 python -m tevatron.retriever.driver.search \
 --query_reps $save_path/${dataset_name}_queries_emb.pkl \
 --passage_reps "$save_path/"'corpus_emb.*.pkl' \
---batch_size 64 \
+--batch_size 1024 \
 --depth 1000 \
 --save_text \
 --save_ranking_to $save_path/rank.${dataset_name}.txt 
