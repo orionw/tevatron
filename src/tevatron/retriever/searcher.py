@@ -12,7 +12,8 @@ class FaissFlatSearcher:
         
         # Get the number of GPUs
         self.num_gpus = faiss.get_num_gpus()
-        assert self.num_gpus > 0, "No GPUs available"
+        # breakpoint()
+        # assert self.num_gpus > 0, "No GPUs available"
         logger.info(f"Number of GPUs available: {self.num_gpus}")
         
         # Create GPU resources

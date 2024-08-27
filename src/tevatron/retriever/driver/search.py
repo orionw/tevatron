@@ -60,21 +60,21 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"looking at `{args.passage_reps}`")
+    # print(f"looking at `{args.passage_reps}`")
     index_files = glob.glob(args.passage_reps)
     logger.info(f'Pattern match found {len(index_files)} files; loading them into index.')
 
-    logger.info('Loading pickle')
+    # logger.info('Loading pickle')
     p_reps_0, p_lookup_0 = pickle_load(index_files[0])
-    logger.info('Loading Faiss')
+    # logger.info('Loading Faiss')
     retriever = FaissFlatSearcher(p_reps_0)
 
-    logger.info('Adding shards to index')
+    # logger.info('Adding shards to index')
     shards = chain([(p_reps_0, p_lookup_0)], map(pickle_load, index_files[1:]))
     if len(index_files) > 1:
         shards = tqdm(shards, desc='Loading shards into index', total=len(index_files))
     look_up = []
-    logger.info('Adding shards to index')
+    # logger.info('Adding shards to index')
     for p_reps, p_lookup in shards:
         retriever.add(p_reps)
         look_up += p_lookup

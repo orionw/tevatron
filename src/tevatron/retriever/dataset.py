@@ -15,7 +15,9 @@ print_once = False
 def format_query(query: str, prefix: str = '', prompt: str = '') -> str:
     global print_once
     if prompt.strip() != '':
-        ret_str = f'{prefix} {query.strip()} {prompt.strip()}'.strip()
+        query_ends_in_punct = query.strip()[-1] in ['.', '?', '!']
+        added_q = "" if query_ends_in_punct else "?"
+        ret_str = f'{prefix} {query.strip()}{added_q} {prompt.strip()}'.strip()
     else:
         ret_str = f'{prefix} {query.strip()}'.strip()
 
