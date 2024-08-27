@@ -18,7 +18,9 @@ datasets=(
     'climate-fever'
     'dbpedia-entity'
     'fever'
-    # 'msmarco'
+    'msmarco-dl19'
+    'msmarco-dl20'
+    'msmarco-dev'
 )
 
 
@@ -29,7 +31,8 @@ evaluate() {
 
     # if the final eval file exists and has a score, skip
     if [[ -f "${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval" ]]; then
-        if [[ $(awk '/ndcg_cut_10 / {print $3}' "${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval") != "0.0000" ]]; then
+        # if ndcg_cut_10 is in it or recip in it, skip
+        if [[ $(grep -c "ndcg_cut_10" "${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval") -gt 0 ]] || [[ $(grep -c "recip_rank" "${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval") -gt 0 ]]; then
             echo "Skipping ${dataset_name}${output_suffix} because of existing file ${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval"
             return
         fi
@@ -37,10 +40,25 @@ evaluate() {
 
     echo "Evaluating ${dataset_name} with ${trec_file}..."
 
-    python -m pyserini.eval.trec_eval -c -mrecall.100 -mndcg_cut.10 \
-    "beir-v1.0.0-${dataset_name}-test" \
-    "${trec_file}" \
-    > "${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval"
+    if [[ "$dataset_name" != *"msmarco"* ]]; then
+        python -m pyserini.eval.trec_eval -c -mrecall.100 -mndcg_cut.10 \
+        "beir-v1.0.0-${dataset_name}-test" \
+        "${trec_file}" \
+        > "${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval"
+    else
+        dataset=$(echo $dataset_name | cut -d'-' -f2)
+        if [ $dataset == "dev" ]; then
+            echo "Evaluating ${dataset}..."
+            echo "python -m pyserini.eval.trec_eval -c -M 100 -m recip_rank msmarco-passage-dev-subset "${trec_file}""
+            python -m pyserini.eval.trec_eval -c -M 100 -m recip_rank msmarco-passage-dev-subset "${trec_file}" > "${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval"
+        else
+            pyserini_dataset="${dataset}-passage"
+            echo "Evaluating ${dataset}..."
+            echo "python -m pyserini.eval.trec_eval -c -mrecall.100 -mndcg_cut.10 $pyserini_dataset "${trec_file}""
+            python -m pyserini.eval.trec_eval -c -mrecall.100 -mndcg_cut.10 $pyserini_dataset "${trec_file}" > "${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval"
+        fi
+    fi
+
 
     echo "Score is saved at ${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval"
     cat "${results_path}/${dataset_name}/${dataset_name}${output_suffix}.eval"

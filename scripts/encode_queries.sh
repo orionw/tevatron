@@ -3,7 +3,7 @@ encoded_save_path=$1
 model=$2
 for dataset in dl19 dl20 dev; do
 echo $dataset
-CUDA_VISIBLE_DEVICES=7 python -m tevatron.retriever.driver.encode \
+CUDA_VISIBLE_DEVICES=0 python -m tevatron.retriever.driver.encode \
   --output_dir=temp \
   --model_name_or_path meta-llama/Llama-2-7b-hf \
   --lora_name_or_path $model \

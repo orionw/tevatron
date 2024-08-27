@@ -9,8 +9,10 @@ echo "Encoding BEIR corpus... $dataset_name"
 # reverse it
 for s in $(seq 3 -1 0);
 do
+  # gpu id += 4
+  # gpuid=$((s+4))
   gpuid=$s
-  echo $gpuid
+  # echo $gpuid
   # if it's the last one (aka zero), don't run in background
   if [ "$s" == "0" ]; then
     # give it some time so that it's the last to run
@@ -48,7 +50,7 @@ do
     --append_eos_token \
     --normalize \
     --per_device_eval_batch_size 32 \
-    --query_max_len 304 \
+    --query_max_len 512 \
     --passage_max_len 512 \
     --dataset_name "Tevatron/beir-corpus" \
     --dataset_config "$dataset_name" \

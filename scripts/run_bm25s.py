@@ -10,15 +10,24 @@ from tqdm import tqdm
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_queries(dataset_name):
-    logging.info(f"Loading queries for dataset: {dataset_name}")
-    dataset = load_dataset(f"tevatron/beir", dataset_name, trust_remote_code=True)["test"]
-    return {row['query_id']: row['query'] for row in dataset}
+    if "msmarco-" in dataset_name:
+        logging.info(f"Loading MS MARCO queries for dataset: {dataset_name}")
+        dataset = load_dataset(f"tevatron/msmarco-passage", split=dataset_name.split("-")[-1], trust_remote_code=True)
+        return {row['query_id']: row['query'] for row in dataset}
+    else:
+        logging.info(f"Loading queries for dataset: {dataset_name}")
+        dataset = load_dataset(f"tevatron/beir", dataset_name, trust_remote_code=True)["test"]
+        return {row['query_id']: row['query'] for row in dataset}
 
 def main(args):
     logging.info(f"Starting BM25S search for dataset: {args.dataset_name}")
 
     # Load the BM25 index from Hugging Face Hub
-    index_name = f"xhluca/bm25s-{args.dataset_name}-index"
+    if "msmarco-" in args.dataset_name:
+        cur_dataset_name = "msmarco"
+    else:
+        cur_dataset_name = args.dataset_name
+    index_name = f"xhluca/bm25s-{cur_dataset_name}-index"
     logging.info(f"Loading BM25 index from: {index_name}")
     retriever = bm25s.hf.BM25HF.load_from_hub(
         index_name, load_corpus=True, mmap=True

@@ -1,19 +1,27 @@
 #!/bin/bash
 
 # example: bash scripts/beir/search_all_prompts.sh reproduced-v2
+# example: bash scripts/beir/search_all_prompts.sh joint-full
 
 save_path=$1
 
 datasets=(
-    'arguana'
     'fiqa'
     'nfcorpus'
     'scidocs'
     'scifact'
-    'webis-touche2020'
     'trec-covid'
+    'webis-touche2020'
     'quora'
     'nq'
+    'arguana'
+    'hotpotqa'
+    'fever'
+    'climate-fever'
+    'dbpedia-entity'
+    'msmarco-dl19'
+    'msmarco-dl20'
+    'msmarco-dev'
 )
 
 
@@ -24,7 +32,8 @@ search_and_evaluate() {
 
     # if the final eval file exists and has a score, skip
     if [[ -f "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.eval" ]]; then
-        if [[ $(awk '/ndcg_cut_10 / {print $3}' "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.eval") != "0.0000" ]]; then
+        # if there exists an ndcg_cut_10 in the file or a recip_rank, skip
+        if [[ $(grep -c "ndcg_cut_10" "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.eval") -gt 0 ]] || [[ $(grep -c "recip_rank" "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.eval") -gt 0 ]]; then
             echo "Skipping ${dataset_name}${output_suffix} because of existing file ${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.eval"
             return
         fi
@@ -40,6 +49,12 @@ search_and_evaluate() {
     --save_text \
     --save_ranking_to "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.txt"
 
+    # if the last command failed, exit
+    if [ $? -ne 0 ]; then
+        echo "Failed to search ${dataset_name}${output_suffix}"
+        exit 1
+    fi
+
     echo "Ranking is saved at ${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.txt"
 
     python -m tevatron.utils.format.convert_result_to_trec \
@@ -47,14 +62,29 @@ search_and_evaluate() {
     --output "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.trec" \
     --remove_query
 
+    # if msmarco is not in the name use beir
     echo "Evaluating ${dataset_name}${output_suffix}..."
-    python -m pyserini.eval.trec_eval -c -mrecall.100 -mndcg_cut.10 \
-    "beir-v1.0.0-${dataset_name}-test" \
-    "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.trec" \
-    > "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.eval"
-
+    if [[ "$dataset_name" != *"msmarco"* ]]; then
+        python -m pyserini.eval.trec_eval -c -mrecall.100 -mndcg_cut.10 \
+        "beir-v1.0.0-${dataset_name}-test" \
+        "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.trec" \
+        > "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.eval"
+    else
+        dataset=$(echo $dataset_name | cut -d'-' -f2)
+        if [ $dataset == "dev" ]; then
+            echo "Evaluating ${dataset}..."
+            echo "python -m pyserini.eval.trec_eval -c -M 100 -m recip_rank msmarco-passage-dev-subset $save_path//${dataset_name}/rank.${dataset_name}${output_suffix}.trec"
+            python -m pyserini.eval.trec_eval -c -M 100 -m recip_rank msmarco-passage-dev-subset $save_path/${dataset_name}/rank.${dataset_name}${output_suffix}.trec > $save_path/${dataset_name}/rank.${dataset_name}${output_suffix}.eval
+        else
+            pyserini_dataset="${dataset}-passage"
+            echo "Evaluating ${dataset}..."
+            echo "python -m pyserini.eval.trec_eval -c -mrecall.100 -mndcg_cut.10 $pyserini_dataset $save_path/${dataset_name}/rank.${dataset_name}${output_suffix}.trec"
+            python -m pyserini.eval.trec_eval -c -mrecall.100 -mndcg_cut.10 $pyserini_dataset $save_path/${dataset_name}/rank.${dataset_name}${output_suffix}.trec > $save_path/${dataset_name}/rank.${dataset_name}${output_suffix}.eval
+        fi
+    fi
     echo "Score is saved at ${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.eval"
     cat "${save_path}/${dataset_name}/rank.${dataset_name}${output_suffix}.eval"
+    sleep 5
 }
 
 # Process all datasets
@@ -62,7 +92,9 @@ for dataset in "${datasets[@]}"; do
     dataset_path="${save_path}/${dataset}"
     
     # Search without prompt
-    search_and_evaluate "$dataset" "${dataset_path}/${dataset}_queries_emb.pkl" ""
+    if [[ -f "${dataset_path}/${dataset}_queries_emb.pkl" ]]; then
+        search_and_evaluate "$dataset" "${dataset_path}/${dataset}_queries_emb.pkl" ""
+    fi
 
     # Search with generic prompts
     for query_file in "${dataset_path}/${dataset}_queries_emb_"*.pkl; do
@@ -72,11 +104,12 @@ for dataset in "${datasets[@]}"; do
         fi
     done
 done
+#!/bin/bash
 
 # Aggregate results
 echo "Aggregating results..."
 output_file="${save_path}/aggregate_results.csv"
-echo "Dataset,Prompt,NDCG@10,Recall@100" > "$output_file"
+echo "Dataset,Prompt,NDCG@10,Recall@100,MRR" > "$output_file"
 
 for dataset in "${datasets[@]}"; do
     dataset_path="${save_path}/${dataset}"
@@ -84,18 +117,28 @@ for dataset in "${datasets[@]}"; do
     # Process results without prompt
     eval_file="${dataset_path}/rank.${dataset}.eval"
     if [[ -f "$eval_file" ]]; then
-        ndcg=$(awk '/ndcg_cut_10 / {print $3}' "$eval_file")
-        recall=$(awk '/recall_100 / {print $3}' "$eval_file")
-        echo "${dataset},no_prompt,${ndcg},${recall}" >> "$output_file"
+        if [[ "$dataset" == "msmarco-dev" ]]; then
+            mrr=$(awk '/recip_rank / {print $3}' "$eval_file")
+            echo "${dataset},no_prompt,,,${mrr}" >> "$output_file"
+        else
+            ndcg=$(awk '/ndcg_cut_10 / {print $3}' "$eval_file")
+            recall=$(awk '/recall_100 / {print $3}' "$eval_file")
+            echo "${dataset},no_prompt,${ndcg},${recall}," >> "$output_file"
+        fi
     fi
     
     # Process results with prompts
     for eval_file in "${dataset_path}/rank.${dataset}_"*.eval; do
         if [[ -f "$eval_file" ]]; then
             prompt_hash=$(basename "$eval_file" | sed -n 's/.*_\(.*\)\.eval/\1/p')
-            ndcg=$(awk '/ndcg_cut_10 / {print $3}' "$eval_file")
-            recall=$(awk '/recall_100 / {print $3}' "$eval_file")
-            echo "${dataset},${prompt_hash},${ndcg},${recall}" >> "$output_file"
+            if [[ "$dataset" == "msmarco-dev" ]]; then
+                mrr=$(awk '/recip_rank / {print $3}' "$eval_file")
+                echo "${dataset},${prompt_hash},,,${mrr}" >> "$output_file"
+            else
+                ndcg=$(awk '/ndcg_cut_10 / {print $3}' "$eval_file")
+                recall=$(awk '/recall_100 / {print $3}' "$eval_file")
+                echo "${dataset},${prompt_hash},${ndcg},${recall}," >> "$output_file"
+            fi
         fi
     done
 done

@@ -21,7 +21,9 @@ datasets=(
     'climate-fever'
     'dbpedia-entity'
     'fever'
-    # 'msmarco'
+    'msmarco-dl19'
+    'msmarco-dl20'
+    'msmarco-dev'
 )
 
 
@@ -53,25 +55,29 @@ for dataset in "${datasets[@]}"; do
     python scripts/run_bm25s.py --dataset_name $dataset --top_k 1000 --output_dir "$nickname/$dataset"
 done
 
+remove_quotes() {
+    echo "$1" | sed -e 's/^"//' -e 's/"$//'
+}
 
+# Read the CSV file, handling quoted fields
+while IFS=',' read -r dataset quoted_prompt
+do
+    # Remove surrounding quotes from the prompt
+    prompt=$(remove_quotes "$quoted_prompt")
+    echo "Running domain prompt on dataset: $dataset"
+    echo "Prompt: '$prompt'"
+    prompt_hash=$(echo -n "$prompt" | md5sum | awk '{print $1}')
+    mkdir -p "$nickname/$dataset"
+    if [ -f "$nickname/$dataset/${dataset}_${prompt_hash}.trec" ]; then
+        echo "Skipping $dataset because of existing file $nickname/$dataset/$dataaset_$prompt_hash.trec"
+        continue
+    fi
 
-# # now load domain_prompt.csv (dataset, prompt) and run it on each dataset
-# while IFS=, read -r dataset prompt
-# do
-#     echo "Running prompt on dataset: $dataset"
-#     echo "Prompt: '$prompt'"
-#     # if the gpu_num is the max, don't run it in the background, otherwise run in the background
-#     if [ $gpu_num -eq $gpu_max ]; then
-#         bash scripts/beir/encode_beir_queries.sh "$nickname/$dataset" "$retriever_name" "$dataset" "$gpu_num" "$prompt"
-#         echo "Sleeping for 120 seconds..."
-#         sleep 120
-#         echo "Done sleeping."
-#     else
-#         bash scripts/beir/encode_beir_queries.sh "$nickname/$dataset" "$retriever_name" "$dataset" "$gpu_num" "$prompt" &
-#     fi
-#     # update the GPU num looping if it hits the max
-#     gpu_num=$((gpu_num+1))
-#     if [ $gpu_num -gt $gpu_max ]; then
-#         gpu_num=0
-#     fi
-# done < domain_prompt.csv
+    # if dataset is MSMarco, skip:
+    if [[ "$dataset" == *"msmarco"* ]]; then
+        echo "Skipping $dataset because it is MSMarco"
+        continue
+    fi
+
+    python scripts/run_bm25s.py --dataset_name "$dataset" --prompt "$prompt" --top_k 1000 --output_dir "$nickname/$dataset" --prompt_hash "$prompt_hash"
+done < domain_prompts.csv

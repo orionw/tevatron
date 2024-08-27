@@ -5,6 +5,8 @@ dataset_name=$3
 gpu_num=$4
 prompt=$5
 
+mkdir -p $encoded_save_path/$dataset_name
+
 if [ -z "$prompt" ]; then
   prompt_flag=()
   final_output_path="$encoded_save_path/${dataset_name}_queries_emb.pkl"
@@ -26,7 +28,31 @@ fi
 echo "Saving to $final_output_path"
 
 
-CUDA_VISIBLE_DEVICES=$gpu_num python -m tevatron.retriever.driver.encode \
+### if msmarco is in the name of the dataset, the new dataset name is after the - and use the tevatron msmarco-passages dataset
+if [[ "$dataset_name" == *"msmarco"* ]]; then
+  dataset=$(echo $dataset_name | cut -d'-' -f2)
+  CUDA_VISIBLE_DEVICES=$gpu_num python -m tevatron.retriever.driver.encode \
+  --output_dir=temp \
+  --model_name_or_path meta-llama/Llama-2-7b-hf \
+  --lora_name_or_path "$model" \
+  --lora \
+  --query_prefix "query: " \
+  --passage_prefix "passage: " \
+  --bf16 \
+  --pooling eos \
+  --append_eos_token \
+  --normalize \
+  --encode_is_query \
+  --per_device_eval_batch_size 16 \
+  --query_max_len 512 \
+  --passage_max_len 512 \
+  --dataset_name Tevatron/msmarco-passage \
+  --dataset_split $dataset \
+  --encode_output_path "$final_output_path" "${prompt_flag[@]}"
+
+else
+
+  CUDA_VISIBLE_DEVICES=$gpu_num python -m tevatron.retriever.driver.encode \
   --output_dir=temp \
   --model_name_or_path meta-llama/Llama-2-7b-hf \
   --lora_name_or_path "$model" \
@@ -46,3 +72,4 @@ CUDA_VISIBLE_DEVICES=$gpu_num python -m tevatron.retriever.driver.encode \
   --dataset_split test \
   --encode_output_path "$final_output_path" "${prompt_flag[@]}"
   
+fi

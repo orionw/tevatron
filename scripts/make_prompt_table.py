@@ -130,7 +130,7 @@ domain_hashes = read_domain_prompts('domain_prompts.csv')
 
 bm25_data = read_csv('bm25/bm25_aggregate_results.csv', generic_hashes, domain_hashes)
 repllama_data = read_csv('reproduced-v2/aggregate_results.csv', generic_hashes, domain_hashes)
-modelname_data = read_csv('modelname_results.csv', generic_hashes, domain_hashes)
+modelname_data = read_csv('joint-full/aggregate_results.csv', generic_hashes, domain_hashes)
 
 latex_table = generate_latex_table(bm25_data, repllama_data, modelname_data)
 print(latex_table)
