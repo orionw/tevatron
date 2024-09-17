@@ -70,7 +70,6 @@ def main():
         torch_dtype=torch_dtype
     )
     # logger.info("Loaded model %s", model_args.model_name_or_path)
-
     encode_dataset = EncodeDataset(
         data_args=data_args,
     )

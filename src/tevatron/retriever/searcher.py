@@ -8,10 +8,10 @@ logger = logging.getLogger(__name__)
 class FaissFlatSearcher:
     def __init__(self, init_reps: np.ndarray):
         self.dim = init_reps.shape[1]
-        assert self.dim == 4096, "This implementation is optimized for 4096-dimensional vectors"
+        # assert self.dim == 4096, "This implementation is optimized for 4096-dimensional vectors"
         
         # Get the number of GPUs
-        self.num_gpus = faiss.get_num_gpus()
+        self.num_gpus = 8 # faiss.get_num_gpus()
         # breakpoint()
         # assert self.num_gpus > 0, "No GPUs available"
         logger.info(f"Number of GPUs available: {self.num_gpus}")

@@ -22,7 +22,7 @@ def format_query(query: str, prefix: str = '', prompt: str = '') -> str:
         ret_str = f'{prefix} {query.strip()}'.strip()
 
     if not print_once:
-        logger.info(f'Prompt: {prompt}')
+        logger.info(f'Prompt: `{prompt}`')
         logger.info(f'Query: {ret_str}')
         print_once = True
 
