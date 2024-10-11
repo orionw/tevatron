@@ -1,0 +1,10 @@
+Be careful when assigning relevance as your job is on the line and I will give you a 1000 dollar tip.
+Think carefully about these conditions when determining relevance.
+A relevant document should also provide a clear and concise explanation, avoiding unnecessary complexity or ambiguity. When in doubt, prioritize documents that provide a clear, direct, and specific answer to the query.
+A document that meets these criteria is considered relevant, while a document that does not meet these criteria is considered non-relevant.
+A relevant document should focus solely on providing a clear and accurate answer to the query, without distracting or unnecessary information
+A document is relevant if it helps to answer the query. Surface relevant documents only.
+Relevant documents are those that are topically related, answer the given question, or otherwise provide insight on the input. Think step by step about whether a document is relevant for this question.
+Find relevant documents to the query. Use strict critera when evaluating relevance: a relevant document here should provide direct information to either fully answer the query, or provide useful information towards answering it. Avoid only topically relevant documents.
+When judging the relevance of a document, focus on the pragmatics of the query and consider irrelevant any documents for which the user would have used a different query.
+Think carefully about relevance

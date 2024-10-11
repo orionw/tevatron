@@ -43,9 +43,11 @@ class TrainCollator:
         )
 
         if self.data_args.append_eos_token:
+            if not self.tokenizer.eos_token_id:
+                self.tokenizer.eos_token_id = self.tokenizer.pad_token_id
             q_collated['input_ids'] = [q + [self.tokenizer.eos_token_id] for q in q_collated['input_ids']]
             d_collated['input_ids'] = [d + [self.tokenizer.eos_token_id] for d in d_collated['input_ids']]
-        
+
         q_collated = self.tokenizer.pad(
             q_collated,
             padding=True, 
@@ -76,6 +78,8 @@ class EncodeCollator:
         text_ids = [x[0] for x in features]
         texts = [x[1] for x in features]
         max_length = self.data_args.query_max_len if self.data_args.encode_is_query else self.data_args.passage_max_len
+        if self.tokenizer.eos_token_id is None:
+            self.tokenizer.eos_token_id = self.tokenizer.pad_token_id
         collated_texts = self.tokenizer(
             texts,
             padding=False, 

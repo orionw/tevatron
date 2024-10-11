@@ -74,6 +74,11 @@ class ModelArguments:
     # don't shuffle
     dont_shuffle: bool = field(default=False, metadata={"help": "don't shuffle the training data"})
 
+    # add special tokens for query and passage
+    add_special_tokens_for_query_passage: bool = field(
+        default=False, metadata={"help": "add special tokens for query and passage"}
+    )
+
 
 @dataclass
 class DataArguments:

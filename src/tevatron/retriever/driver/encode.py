@@ -67,8 +67,10 @@ def main():
         normalize=model_args.normalize,
         lora_name_or_path=model_args.lora_name_or_path,
         cache_dir=model_args.cache_dir,
-        torch_dtype=torch_dtype
+        torch_dtype=torch_dtype,
+        add_special_tokens_for_query_passage=model_args.add_special_tokens_for_query_passage,
     )
+        
     # logger.info("Loaded model %s", model_args.model_name_or_path)
     encode_dataset = EncodeDataset(
         data_args=data_args,

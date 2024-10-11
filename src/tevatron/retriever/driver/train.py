@@ -68,13 +68,22 @@ def main():
         tokenizer.pad_token_id = tokenizer.eos_token_id
     tokenizer.padding_side = 'right'
     print(f"Tokenizer name is {model_args.tokenizer_name}")
-    print(tokenizer)
+    # print(tokenizer)
     
     model = DenseModel.build(
         model_args,
         training_args,
         cache_dir=model_args.cache_dir,
     )
+
+    if model_args.add_special_tokens_for_query_passage:
+        print(f"Adding special tokens for query and passage")
+        tokenizer.add_special_tokens({'additional_special_tokens': ['[QUERY]', '[PASSAGE]']})
+        # resize the model embedding
+        model.encoder.resize_token_embeddings(len(tokenizer))
+        print(f"Resized model embedding to {len(tokenizer)}")
+        
+
 
     train_dataset = TrainDataset(data_args)
     collator = TrainCollator(data_args, tokenizer)

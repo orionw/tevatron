@@ -97,7 +97,7 @@ class TrainDataset(Dataset):
 
             negs = first_negs + selected_negs
         else:
-            assert False
+            # print(f"Not using negatives_first_n")
             _offset = epoch * negative_size % len(group_negatives)
             negs = [x for x in group_negatives]
             random.Random(_hashed_seed).shuffle(negs)
@@ -134,6 +134,7 @@ class EncodeDataset(Dataset):
     def __getitem__(self, item) -> Tuple[str, str]:
         text = self.encode_data[item]
         if self.data_args.encode_is_query:
+            # print(text)
             text_id = text['query_id']
             formated_text = format_query(text['query'], self.data_args.query_prefix, self.data_args.prompt)
         else:

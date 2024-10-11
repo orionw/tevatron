@@ -117,6 +117,11 @@ class EncoderModel(nn.Module):
             **hf_kwargs,
     ):  
         base_model = cls.TRANSFORMER_CLS.from_pretrained(model_args.model_name_or_path, **hf_kwargs)
+        if model_args.add_special_tokens_for_query_passage:
+            # add two special tokens for query and passage
+            base_model.resize_token_embeddings(32002)
+            assert base_model.embed_tokens.weight.shape[0] == 32002, f"Resized model embedding to 32002 in EncoderModel.build"
+            print(f"Resized model embedding to 32002 in EncoderModel.build")
         if base_model.config.pad_token_id is None:
             base_model.config.pad_token_id = 0
         if model_args.lora or model_args.lora_name_or_path:
@@ -149,6 +154,8 @@ class EncoderModel(nn.Module):
                 normalize=model_args.normalize,
                 temperature=model_args.temperature
             )
+
+
         return model
 
     @classmethod
@@ -157,8 +164,14 @@ class EncoderModel(nn.Module):
              pooling: str = 'cls',
              normalize: bool = False,
              lora_name_or_path: str = None,
+             add_special_tokens_for_query_passage: bool = False,
              **hf_kwargs):
         base_model = cls.TRANSFORMER_CLS.from_pretrained(model_name_or_path, **hf_kwargs)
+        if add_special_tokens_for_query_passage:
+            # add two special tokens for query and passage
+            base_model.resize_token_embeddings(32002)
+            assert base_model.embed_tokens.weight.shape[0] == 32002, f"Resized model embedding to 32002 in EncoderModel.build"
+            print(f"Resized model embedding to 32002 in EncoderModel.build")
         if base_model.config.pad_token_id is None:
             base_model.config.pad_token_id = 0
         if lora_name_or_path:

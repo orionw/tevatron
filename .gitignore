@@ -2,10 +2,7 @@
 __pycache__/
 *.egg-info/
 retriever-*
-error_analysis
 faiss
-logs
 resources
-old
-results
 samaya-storage
+tevatron-a100s-storage/

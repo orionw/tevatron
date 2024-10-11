@@ -8,6 +8,8 @@ logger = logging.getLogger(__name__)
 class DenseModel(EncoderModel):
 
     def encode_query(self, qry):
+        # print the query
+        # print the model embedding size
         query_hidden_states = self.encoder(**qry, return_dict=True)
         query_hidden_states = query_hidden_states.last_hidden_state
         return self._pooling(query_hidden_states, qry['attention_mask'])
