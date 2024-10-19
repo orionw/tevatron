@@ -23,6 +23,7 @@ echo $gpuid
 CUDA_VISIBLE_DEVICES=$gpuid python -m tevatron.retriever.driver.encode \
   --output_dir=temp \
   --model_name_or_path $model  \
+  --tokenizer_config_name $model \
   --query_prefix "query: " \
   --passage_prefix "passage: " \
   --bf16 \

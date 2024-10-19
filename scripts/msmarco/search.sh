@@ -8,7 +8,7 @@ for dataset in dl19 dl20 dev; do # dev
     --query_reps $save_path/${dataset}_queries_emb.pkl \
     --passage_reps "$save_path/"'corpus_emb.*.pkl' \
     --depth 1000 \
-    --batch_size 64 \
+    --batch_size 256 \
     --save_text \
     --save_ranking_to $save_path/rank.${dataset}.txt
 

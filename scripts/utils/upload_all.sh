@@ -3,8 +3,10 @@
 # infinite loop
 while true; do
     # for each folder path in the list, upload to huggingface
-    # joint-full llama3.1 llama3.1-instruct mistral-v0.1 mistral-v0.3 reproduced-v2
-    for folder_path in bert-v1 bert-standard mean_pool with_tokens;
+    # 
+    #     for folder_path in  ;
+
+    for folder_path in bert-v1 bert-standard mean_pool with_tokens swap-v2 standard-long-v1 standard-long-v2 joint-full reproduced-v2;
     do 
         python scripts/utils/upload_to_hf_folder.py -f $folder_path -r orionweller/promptriever-$folder_path
         # if there was an error sleep for an hour
