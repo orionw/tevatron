@@ -47,9 +47,10 @@ def main():
     # logger.info("Training/evaluation parameters %s", training_args)
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
-        cache_dir=model_args.cache_dir
+        cache_dir=model_args.cache_dir,
+        trust_remote_code=True,
     )
-    # logger.info("Tokenizer parameters %s", tokenizer)
+    logger.info("Tokenizer parameters %s", tokenizer)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token_id = tokenizer.eos_token_id
     tokenizer.padding_side = 'right'

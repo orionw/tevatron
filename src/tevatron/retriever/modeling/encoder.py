@@ -116,7 +116,7 @@ class EncoderModel(nn.Module):
             train_args: TrainingArguments,
             **hf_kwargs,
     ):  
-        base_model = cls.TRANSFORMER_CLS.from_pretrained(model_args.model_name_or_path, **hf_kwargs)
+        base_model = cls.TRANSFORMER_CLS.from_pretrained(model_args.model_name_or_path, trust_remote_code=True, **hf_kwargs)
         if model_args.add_special_tokens_for_query_passage:
             # add two special tokens for query and passage
             base_model.resize_token_embeddings(32002)
@@ -128,8 +128,8 @@ class EncoderModel(nn.Module):
             if train_args.gradient_checkpointing:
                 base_model.enable_input_require_grads()
             if model_args.lora_name_or_path:
-                lora_config = LoraConfig.from_pretrained(model_args.lora_name_or_path, **hf_kwargs)
-                lora_model = PeftModel.from_pretrained(base_model, model_args.lora_name_or_path, is_trainable=True)
+                lora_config = LoraConfig.from_pretrained(model_args.lora_name_or_path, trust_remote_code=True, **hf_kwargs)
+                lora_model = PeftModel.from_pretrained(base_model, model_args.lora_name_or_path, trust_remote_code=True, is_trainable=True)
             else:
                 lora_config = LoraConfig(
                     base_model_name_or_path=model_args.model_name_or_path,
@@ -166,7 +166,7 @@ class EncoderModel(nn.Module):
              lora_name_or_path: str = None,
              add_special_tokens_for_query_passage: bool = False,
              **hf_kwargs):
-        base_model = cls.TRANSFORMER_CLS.from_pretrained(model_name_or_path, **hf_kwargs)
+        base_model = cls.TRANSFORMER_CLS.from_pretrained(model_name_or_path, trust_remote_code=True, **hf_kwargs)
         if add_special_tokens_for_query_passage:
             # add two special tokens for query and passage
             base_model.resize_token_embeddings(32002)
@@ -175,8 +175,8 @@ class EncoderModel(nn.Module):
         if base_model.config.pad_token_id is None:
             base_model.config.pad_token_id = 0
         if lora_name_or_path:
-            lora_config = LoraConfig.from_pretrained(lora_name_or_path, **hf_kwargs)
-            lora_model = PeftModel.from_pretrained(base_model, lora_name_or_path, config=lora_config)
+            lora_config = LoraConfig.from_pretrained(lora_name_or_path, trust_remote_code=True, **hf_kwargs)
+            lora_model = PeftModel.from_pretrained(base_model, lora_name_or_path, config=lora_config, trust_remote_code=True)
             lora_model = lora_model.merge_and_unload()
             model = cls(
                 encoder=lora_model,
